@@ -19,8 +19,22 @@
   (print-str points)
   (conj points {:x x :y y})))
 
+(defn find-closest-point[points, reference]
+  ; find out how to get the min from dists
+  (let [pointsWithDist
+    (map points (fn [point, reference]
+      (let [xDist (abs (- :x point :x reference))
+            yDist (abs (- :y point :y reference))
+            dist (+ xDist yDist)]
+      (assoc point :distance dist))))]
+      (print-str point)
+      (apply min (map pointsWithDist (fn[pointWithDist] (:distance pointWithDist))))))
+
 (defn draw [points]
-  (point (:x (last points)) (:y (last points))))
+  (let [target-point (last points)
+        close-point (find-closest-point points target-point)]
+  (point (:x target-point) (:y target-point))
+  (triangle (:x target-point) (:y target-point) (:x close-point) (:y close-point) 130 130)))
 
 (defsketch example
   :title "yo"
