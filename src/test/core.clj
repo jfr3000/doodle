@@ -10,31 +10,39 @@
   (color-mode :rgb)
   (frame-rate 1)
   (draw-initial-triangle)
-  [{:x 3 :y 3}])
+  [])
 
 (defn update [points]
-  (let [
-        x (rand-int 501)
+  (let [x (rand-int 501)
         y (rand-int 501)]
-  (print-str points)
   (conj points {:x x :y y})))
 
-(defn find-closest-point[points, reference]
-  ; find out how to get the min from dists
+(defn maybe-trim[points]
+  (if (> (count points) 2) (nthrest points 1) points))
+
+(defn find-closest-point [points, reference]
   (let [pointsWithDist
-    (map points (fn [point, reference]
-      (let [xDist (abs (- :x point :x reference))
-            yDist (abs (- :y point :y reference))
+    (map (fn [point]
+      (let [xDist (abs (- (:x point) (:x reference)))
+            yDist (abs (- (:y point) (:y reference)))
             dist (+ xDist yDist)]
-      (assoc point :distance dist))))]
-      (print-str point)
-      (apply min (map pointsWithDist (fn[pointWithDist] (:distance pointWithDist))))))
+      (assoc point :distance dist))) points)]
+    (into [] (reduce (fn [acc curr]
+      (if (or
+            (> (:distance (first acc)) (:distance curr))
+            (> (:distance (nth acc 1)) (:distance curr)))
+        (maybe-trim(conj acc curr)))
+        acc
+    ) [{:distance 500} {:distance 500}] pointsWithDist))))
+
 
 (defn draw [points]
   (let [target-point (last points)
-        close-point (find-closest-point points target-point)]
+        close-points (find-closest-point points target-point)]
   (point (:x target-point) (:y target-point))
-  (triangle (:x target-point) (:y target-point) (:x close-point) (:y close-point) 130 130)))
+  (triangle (:x target-point) (:y target-point)
+            (:x (first close-points)) (:y (first close-points))
+            (:x (nth close-points 1)) (:y (nth close-points 1)))))
 
 (defsketch example
   :title "yo"
